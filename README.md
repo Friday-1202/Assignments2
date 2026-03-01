@@ -345,7 +345,8 @@ Figures are under `figures_AMtown02/`:
 - **trajectory_3d_2d.png** — 2D top-down view.
 - **AMtown02_trajectory_combined.png** — All of the above merged into one image (vertical layout).
 
-![Trajectory Evaluation](figures_AMtown02/trajectory_evaluation.png)
+<img width="1200" height="3360" alt="image" src="https://github.com/user-attachments/assets/ad19424a-ac23-4ded-a0b3-75a72a555ba1" />
+
 
 *(Generated from `ground_truth_AMtown02_by_images.txt` and `CameraTrajectory.txt` with the project evaluation script and `evo`.)*
 
