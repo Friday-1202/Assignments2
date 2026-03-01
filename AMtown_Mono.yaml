@@ -18,8 +18,7 @@ Camera.p1: 0.0016
 Camera.p2: 0.00013
 Camera.k3: -0.062353
 
-# 图像分辨率：必须与 rgb/ 下实际图像尺寸一致，否则易丢跟踪
-# 若图像为 2448x2048，请改为 Camera.width: 2448, Camera.height: 2048，并相应缩放 fx,fy,cx,cy
+
 Camera.width: 1280
 Camera.height: 720
 
@@ -31,17 +30,14 @@ Camera.RGB: 0
 
 #--------------------------------------------------------------------------------------------
 # ORB Parameters (tuned to track through as many images as possible, extend trajectory)
-# 目标：尽量跑完全部 ~7498 帧，减少中途 Tracking lost，拉长飞行轨迹
+
 #--------------------------------------------------------------------------------------------
 
-# 每帧特征数：越多越稳，不易丢跟踪（航拍可适当加大）
 ORBextractor.nFeatures: 3000
 
-# 金字塔尺度与层数：层数多对尺度变化大的航拍更友好，利于长轨迹
 ORBextractor.scaleFactor: 1.2
 ORBextractor.nLevels: 10
 
-# FAST 阈值：降低可在模糊/弱纹理帧也提出足够角点，减少丢帧
 ORBextractor.iniThFAST: 10
 ORBextractor.minThFAST: 4
 
