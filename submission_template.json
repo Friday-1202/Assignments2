@@ -1,0 +1,10 @@
+{
+  "group_name": "Bug Transporter",
+  "project_private_repo_url": "https://github.com/Friday-1202/Assignments2.git",
+  "metrics": {
+    "ate_rmse_m": 1.3301788427001582,
+    "rpe_trans_drift_m_per_m": 1.5819611577890402,
+    "rpe_rot_drift_deg_per_100m": 12.197722231935213,
+    "completeness_pct": 61.29943502824859
+  }
+}
