@@ -4,12 +4,12 @@
 
 ![ORB-SLAM3](https://img.shields.io/badge/SLAM-ORB--SLAM3-blue?style=for-the-badge)
 ![VO](https://img.shields.io/badge/Mode-Visual_Odometry-green?style=for-the-badge)
-![Dataset](https://img.shields.io/badge/Dataset-AMtown02-orange?style=for-the-badge)
+![Dataset](https://img.shields.io/badge/Dataset-HKisland03-orange?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Completed-success?style=for-the-badge)
 
 **Monocular Visual Odometry Evaluation on UAV Aerial Imagery**
 
-*AMtown02 Dataset - MARS-LVIG*
+*HKisland03 Dataset*
 
 </div>
 
@@ -34,17 +34,17 @@
 
 ## 📊 Executive Summary
 
-This report presents the implementation and evaluation of **Monocular Visual Odometry (VO)** using **ORB-SLAM3** on the **AMtown02** UAV aerial imagery dataset (MARS-LVIG). The trajectory is evaluated against RTK ground truth using **four parallel, monocular-appropriate metrics** computed with the `evo` toolkit via the project evaluation scripts.
+This report presents the implementation and evaluation of **Monocular Visual Odometry (VO)** using **ORB-SLAM3** on the **HKisland03** sequence (downsampled to 1224×1024). The trajectory is evaluated against RTK ground truth using **four parallel, monocular-appropriate metrics** computed with the `evo` toolkit via the project evaluation scripts.
 
 ### Key Results
 
 | Metric | Value | Description |
 |--------|-------|-------------|
-| **ATE RMSE** | **1.330 m** | Global accuracy after Sim(3) alignment (scale corrected) |
-| **RPE Trans Drift** | **1.582 m/m** | Translation drift rate (mean error per meter, delta=10 m) |
-| **RPE Rot Drift** | **12.20 deg/100m** | Rotation drift rate (mean angle per 100 m, delta=10 m) |
-| **Completeness** | **61.30%** | Matched poses / total ground-truth poses (217 / 354) |
-| **Estimated poses** | 2,014 | Trajectory poses in `CameraTrajectory.txt` |
+| **ATE RMSE** | **33.52 m** | Global accuracy after Sim(3) alignment (scale corrected) |
+| **RPE Trans Drift** | **1.40 m/m** | Translation drift rate (mean error per meter, delta=10 m) |
+| **RPE Rot Drift** | **107.37 deg/100m** | Rotation drift rate (mean angle per 100 m, delta=10 m) |
+| **Completeness** | **94.27%** | Matched poses / total images (3687 / 3911) |
+| **Estimated poses** | 3,687 | Trajectory poses in `CameraTrajectory.txt` |
 
 ---
 
@@ -68,7 +68,7 @@ This assignment focuses on **Monocular VO mode**, which:
 
 ### Objectives
 
-1. Run monocular Visual Odometry using ORB-SLAM3 on the AMtown02 dataset
+1. Run monocular Visual Odometry using ORB-SLAM3 on the HKisland03 dataset
 2. Obtain full-frame trajectory (`CameraTrajectory.txt`) and keyframe trajectory (`KeyFrameTrajectory.txt`)
 3. Evaluate trajectory accuracy against provided ground truth using four parallel metrics
 4. Document the complete workflow for reproducibility
@@ -146,31 +146,20 @@ Monocular VO has **scale ambiguity**. All metrics are computed after Sim(3) alig
 
 ## 📁 Dataset Description
 
-### AMtown02 Dataset
+### HKisland03 Dataset
 
-The dataset is from the **MARS-LVIG** UAV dataset (AMtown02 sequence).
+The dataset consists of a monocular sequence (`HKisland03`) with images downsampled to **1224 × 1024** and synchronized RTK ground truth.
 
 | Property | Value |
 |----------|-------|
-| **Dataset Name** | AMtown02 |
-| **Source** | MARS-LVIG / UAVScenes |
-| **Total Images** | 2,149 (used in this run; dataset may contain more) |
-| **Image Resolution** | 1280 × 720 pixels (as configured in this project) |
-| **Frame Rate** | ~10 Hz |
-| **Ground truth (by images)** | 354 poses (subsampled to image timestamps) |
-
-### Data Sources
-
-| Resource | Link |
-|----------|------|
-| MARS-LVIG Dataset | https://mars.hku.hk/dataset.html |
-| UAVScenes GitHub | https://github.com/sijieaaa/UAVScenes |
+| **Dataset Name** | HKisland03 |
+| **Total Images** | 3,911 (images listed in `data/HKisland03/rgb.txt`) |
+| **Image Resolution** | 1224 × 1024 pixels (after 0.5× downsampling) |
+| **Frame Rate** | ~20 Hz (per `HKisland_Mono_1224x1024.yaml`) |
 
 ### Ground Truth
 
-- **Full RTK trajectory**: `docs/ground_truth_AMtown02.txt`
-- **Subsampled by image timestamps** (for evaluation): `docs/ground_truth_AMtown02_by_images.txt`  
-  Used so that completeness is computed as matched poses over the number of image timestamps in the evaluation set.
+- **RTK trajectory**: `docs/ground_truth_HKisland03.txt` (TUM format, `t tx ty tz qx qy qz qw`)
 
 ---
 
@@ -180,43 +169,46 @@ The dataset is from the **MARS-LVIG** UAV dataset (AMtown02 sequence).
 
 | Component | Specification |
 |-----------|---------------|
-| **Framework** | ORB-SLAM3 (C++) |
-| **Mode** | Monocular Visual Odometry (TUM format) |
+| **Framework** | ORB-SLAM3 (C++, Monocular TUM mode) |
 | **Vocabulary** | ORBvoc.txt (pre-trained) |
-| **Operating System** | Linux (Ubuntu) |
+| **Dataset** | HKisland03 (downsampled to 1224 × 1024, 3,911 images) |
+| **Trajectory Output** | `CameraTrajectory.txt` (full-frame) + `KeyFrameTrajectory.txt` (keyframes) |
+| **Ground Truth** | `docs/ground_truth_HKisland03.txt` (RTK, TUM format) |
+| **Operating System** | Linux (Ubuntu / ROS2 Humble container) |
 
-### Camera Calibration (AMtown02)
+### Camera Calibration (HKisland03)
 
-From `docs/AMtown_Mono.yaml`:
+From `docs/HKisland_Mono_1224x1024.yaml`:
 
 ```yaml
 Camera.type: "PinHole"
+
+# Intrinsics for 1224×1024 (0.5x downsampled)
 Camera.fx: 726.86
 Camera.fy: 726.64
 Camera.cx: 586.09
 Camera.cy: 520.89
 
-Camera.k1: -0.1210
-Camera.k2: 0.1113
-Camera.p1: 0.0016
-Camera.p2: 0.00013
-Camera.k3: -0.062353
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
 
-Camera.width: 1280
-Camera.height: 720
-Camera.fps: 10.0
-Camera.RGB: 0
+Camera.width: 1224
+Camera.height: 1024
+Camera.fps: 20.0
+Camera.RGB: 0        # BGR (OpenCV default)
 ```
 
-### ORB Feature Extraction Parameters (Tuned for AMtown02)
+### ORB Feature Extraction Parameters (HKisland03)
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| `nFeatures` | 3000 | More features per frame for stable tracking |
-| `scaleFactor` | 1.2 | Pyramid scale factor |
-| `nLevels` | 10 | More levels for scale robustness in aerial footage |
-| `iniThFAST` | 10 | Lower threshold for weak texture / blur |
-| `minThFAST` | 4 | Minimum FAST threshold |
+```yaml
+ORBextractor.nFeatures: 2000
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 15
+ORBextractor.minThFAST: 6
+```
 
 ---
 
@@ -226,61 +218,121 @@ Camera.RGB: 0
 
 1. **ORB-SLAM3** installed and built (e.g. at `/root/ORB_SLAM3` or set `ORB_SLAM3_ROOT`).
 2. **Vocabulary**: `ORBvoc.txt` (e.g. in `ORB_SLAM3/Vocabulary/`).
-3. **Dataset**: AMtown02 images in `data/AMtown02/rgb/` and `data/AMtown02/rgb.txt` (TUM-style: timestamp and filename per line).
+3. **Dataset**: HKisland03 images in `data/HKisland03/rgb/` and `data/HKisland03/rgb.txt` (TUM-style: timestamp and filename per line, 3911 images).
 
-### Step 1: Prepare environment and dataset
+### Step 1: Dataset layout
 
-Ensure the dataset directory contains:
+```text
+data/HKisland03/
+├── rgb.txt              # 3911 valid image lines (+1 header)
+└── rgb/                 # 3911 PNG images
+    ├── 1698132948.799810.png
+    ├── 1698132948.899896.png
+    └── ...
+```
 
-- `data/AMtown02/rgb.txt` — list of image timestamps and paths (e.g. `rgb/xxx.png`).
-- `data/AMtown02/rgb/` — directory of images.
+`rgb.txt` follows the TUM RGB-D format:
 
-If `rgb.txt` is missing or incomplete, generate it (see `docs/AMtown02_跑全图说明.md` for full-sequence options).
+```text
+# timestamp filename
+1698132948.799810 rgb/1698132948.799810.png
+...
+```
 
-### Step 2: Run ORB-SLAM3 (Monocular TUM)
+### Step 2: Build and configure ORB-SLAM3
+
+```bash
+# Build ORB-SLAM3 (one-time)
+git clone https://github.com/UZ-SLAMLab/ORB_SLAM3.git
+cd ORB_SLAM3
+./build.sh
+
+# Place ORBvoc.txt at:
+#   ORB_SLAM3/Vocabulary/ORBvoc.txt
+```
+
+Environment variables (run from project root `/home/workspace`):
+
+```bash
+export ORB_SLAM3_ROOT=/root/ORB_SLAM3
+export ORB_SLAM3_VOCAB=/root/ORB_SLAM3/Vocabulary/ORBvoc.txt
+
+# Optional: slow down playback in Viewer (2 = half speed)
+export ORB_SLAM3_PLAYBACK_SCALE=2
+```
+
+### Step 3: Run ORB-SLAM3 (Monocular TUM, HKisland03)
 
 From the project root:
 
 ```bash
 cd /home/workspace
 
-export ORB_SLAM3_ROOT=/root/ORB_SLAM3
-export ORB_SLAM3_VOCAB=/root/ORB_SLAM3/Vocabulary/ORBvoc.txt
-export TRAJ_OUT_DIR=/home/workspace/data
-
 ./scripts/run_orb_slam3_mono.sh \
-  /home/workspace/data/AMtown02 \
-  /home/workspace/docs/AMtown_Mono.yaml
+  data/HKisland03 \
+  docs/HKisland_Mono_1224x1024.yaml
 ```
 
-- **Dataset directory**: `data/AMtown02` (must contain `rgb.txt` and `rgb/`).
-- **Camera and ORB settings**: `docs/AMtown_Mono.yaml`.
-- **Trajectory output**: Written to `TRAJ_OUT_DIR` (here `data/`), i.e. `data/CameraTrajectory.txt` and `data/KeyFrameTrajectory.txt`.
+After the sequence finishes, the script produces:
 
-Run until the sequence finishes or you stop with `Ctrl+C`. Ensure a display is available (e.g. X11); for headless runs, use a virtual display (e.g. Xvfb) or see project docs.
+```text
+data/
+├── CameraTrajectory.txt     # full-frame trajectory (used for evaluation)
+├── KeyFrameTrajectory.txt   # keyframe trajectory
+└── HKisland03/...
+```
 
-### Step 3: Evaluate trajectory and generate figures
+### Step 4: Evaluate trajectory and generate figures (HKisland03)
 
-Using the project script (prefer **CameraTrajectory.txt** for higher completeness):
+I use a dedicated helper script `scripts/run_evaluate_HKisland03.sh` that:
+
+- Applies a **timestamp offset** `t_offset = -28430400 s` so that estimated timestamps line up with RTK ground truth.
+- Sets the **completeness denominator to 3911**, i.e. the total number of images in `rgb.txt`, so that  
+  completeness = `matched_poses / 3911` instead of `/ #groundtruth_poses`.
+
+From the project root:
 
 ```bash
 cd /home/workspace
-
-./scripts/evaluate_AMtown02_by_images.sh data/CameraTrajectory.txt
+./scripts/run_evaluate_HKisland03.sh
 ```
 
-This script:
-
-- Uses ground truth: `docs/ground_truth_AMtown02_by_images.txt`
-- Runs `scripts/evaluate_vo_accuracy.py` (ATE, RPE, completeness) and writes `evaluation_results_AMtown02/metrics.json`
-- Generates trajectory figures in `figures_AMtown02/` (e.g. `trajectory_evaluation.png`, `trajectory_3d_3d.png`, `trajectory_3d_2d.png`)
-
-### Step 4 (Optional): Merge figures into one image
+Internally this expands to:
 
 ```bash
+# 1) Metrics (ATE / RPE / Completeness), with evo
+python3 scripts/evaluate_vo_accuracy.py \
+  --groundtruth docs/ground_truth_HKisland03.txt \
+  --estimated data/CameraTrajectory.txt \
+  --t-max-diff 0.1 \
+  --t-offset -28430400 \
+  --delta-m 10 \
+  --completeness-denominator 3911 \
+  --workdir evaluation_results \
+  --json-out evaluation_results/metrics.json
+
+# 2) 2×2 report figure (pre/post alignment + ATE plots)
+python3 scripts/generate_report_figures.py \
+  --gt docs/ground_truth_HKisland03.txt \
+  --est data/CameraTrajectory.txt \
+  --evo-ape-zip evaluation_results/ate.zip \
+  --out figures_HKisland03/trajectory_evaluation.png \
+  --t-max-diff 0.1 \
+  --t-offset -28430400
+
+# 3) 3D / 2D trajectory views (Sim(3) aligned)
+python3 scripts/visualize_trajectory_3d.py \
+  --gt docs/ground_truth_HKisland03.txt \
+  --est data/CameraTrajectory.txt \
+  --evo-ate-zip evaluation_results/ate.zip \
+  --out figures_HKisland03/trajectory_3d \
+  --t-max-diff 0.1 \
+  --t-offset -28430400
+
+# 4) Merge figures into a single vertical panel
 python3 scripts/merge_figures.py \
-  --input-dir figures_AMtown02 \
-  --output figures_AMtown02/AMtown02_trajectory_combined.png \
+  --input-dir figures_HKisland03 \
+  --output figures_HKisland03/HKisland03_trajectory_combined.png \
   --layout vertical
 ```
 
@@ -288,32 +340,32 @@ python3 scripts/merge_figures.py \
 
 ## 📈 Results and Analysis
 
-### Evaluation Results
+### Evaluation Results (HKisland03)
 
 ```
 ================================================================================
-VISUAL ODOMETRY EVALUATION RESULTS (AMtown02)
+VISUAL ODOMETRY EVALUATION RESULTS (HKisland03)
 ================================================================================
 
-Ground Truth:  docs/ground_truth_AMtown02_by_images.txt (354 poses)
-Estimated:     data/CameraTrajectory.txt (2,014 poses)
-Matched Poses: 217 / 354 (61.30%)  ← Completeness
+Ground Truth:  docs/ground_truth_HKisland03.txt
+Estimated:     data/CameraTrajectory.txt (3,687 poses)
+Matched Poses: 3,687 / 3,911 (94.27%)  ← Completeness
 
 METRIC 1: ATE (Absolute Trajectory Error)
 ────────────────────────────────────────
-RMSE:   1.3302 m
-Mean:   0.9552 m
-Std:    0.9257 m
+RMSE:   33.5171 m
+Mean:   29.1782 m
+Std:    16.4931 m
 
 METRIC 2: RPE Translation Drift (distance-based, delta=10 m)
 ────────────────────────────────────────
-Mean translational RPE over 10 m: 15.8196 m
-Translation drift rate:           1.5820 m/m
+Mean translational RPE over 10 m: 13.9557 m
+Translation drift rate:           1.3956 m/m
 
 METRIC 3: RPE Rotation Drift (distance-based, delta=10 m)
 ────────────────────────────────────────
-Mean rotational RPE over 10 m: 1.2198 deg
-Rotation drift rate:              12.1977 deg/100m
+Mean rotational RPE over 10 m: 10.7373 deg
+Rotation drift rate:            107.3734 deg/100m
 
 ================================================================================
 ```
@@ -327,10 +379,10 @@ Rotation drift rate:              12.1977 deg/100m
 
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
-| **ATE RMSE** | 1.33 m | Global error after alignment |
-| **RPE Trans Drift** | 1.58 m/m | Local translation drift rate |
-| **RPE Rot Drift** | 12.20 deg/100m | Local rotation drift rate |
-| **Completeness** | 61.30% | Share of ground-truth poses matched and evaluated |
+| **ATE RMSE** | 33.52 m | Global error after alignment |
+| **RPE Trans Drift** | 1.40 m/m | Local translation drift rate |
+| **RPE Rot Drift** | 107.37 deg/100m | Local rotation drift rate |
+| **Completeness** | 94.27% | Evaluated frames / total images (3687 / 3911) |
 
 ---
 
@@ -338,17 +390,16 @@ Rotation drift rate:              12.1977 deg/100m
 
 ### Trajectory comparison
 
-Figures are under `figures_AMtown02/`:
+Figures are under `figures_HKisland03/`:
 
 - **trajectory_evaluation.png** — 2×2: trajectory before/after alignment, ATE histogram, ATE along trajectory.
 - **trajectory_3d_3d.png** — 3D trajectory comparison (GT vs estimated).
 - **trajectory_3d_2d.png** — 2D top-down view.
-- **AMtown02_trajectory_combined.png** — All of the above merged into one image (vertical layout).
+- **HKisland03_trajectory_combined.png** — All of the above merged into one image (vertical layout).
 
-<img width="1200" height="3360" alt="image" src="https://github.com/user-attachments/assets/ad19424a-ac23-4ded-a0b3-75a72a555ba1" />
+![Trajectory Evaluation](figures_HKisland03/trajectory_evaluation.png)
 
-
-*(Generated from `ground_truth_AMtown02_by_images.txt` and `CameraTrajectory.txt` with the project evaluation script and `evo`.)*
+*(Generated from `ground_truth_HKisland03.txt` and `CameraTrajectory.txt` with the project evaluation script and `evo`.)*
 
 ---
 
@@ -356,39 +407,39 @@ Figures are under `figures_AMtown02/`:
 
 ### Strengths
 
-1. **Full-frame trajectory**: Using `CameraTrajectory.txt` (after enabling it in ORB-SLAM3 for monocular) improves completeness (61.30%) compared to keyframe-only.
-2. **Tuned ORB parameters**: Higher `nFeatures` (3000), more pyramid levels (10), and lower FAST thresholds help tracking on aerial sequences.
-3. **Reproducible pipeline**: Single script for running SLAM and one for evaluation and figures.
+1. **Full-frame trajectory**: Using `CameraTrajectory.txt` (after enabling it in ORB-SLAM3 for monocular) achieves high completeness (94.27%) compared to keyframe-only evaluation.
+2. **Tuned front-end**: Lower FAST thresholds and appropriate ORB settings help stabilize tracking on downsampled aerial images (1224×1024).
+3. **Reproducible pipeline**: A single bash script (`run_evaluate_HKisland03.sh`) drives evaluation and figure generation from a finished ORB-SLAM3 run.
 
 ### Limitations
 
-1. **Completeness**: Only 61.30% of ground-truth poses are matched; tracking loss or timestamp mismatch can reduce this.
-2. **Scale and drift**: Monocular VO has scale ambiguity; drift rates reflect local consistency after Sim(3) alignment.
-3. **No loop closure**: Pure VO mode; no loop closure or relocalization.
+1. **High drift**: Despite good completeness, ATE and drift metrics are relatively large on HKisland03, reflecting challenging motion and limited observability (pure monocular VO, no loop closure).
+2. **Scale and drift**: Monocular VO has scale ambiguity; drift rates reflect local consistency after Sim(3) alignment rather than absolute navigation accuracy.
+3. **No loop closure / IMU**: The experiment uses pure monocular VO without loop closure or IMU fusion, which limits long-term consistency.
 
 ### Error sources
 
-- **Tracking failures**: Occasional lost tracking reduces the number of estimated poses that can be aligned to ground truth.
-- **Calibration and resolution**: Camera intrinsics and resolution (1280×720) must match the actual images.
-- **Motion and texture**: Fast motion or weak texture can degrade feature matching and pose estimation.
+- **Tracking failures / weak features**: Low-texture regions, motion blur, and large parallax can still cause temporary tracking degradation and outliers.
+- **Calibration and resolution**: Intrinsics must match the downsampled 1224×1024 images (`HKisland_Mono_1224x1024.yaml`); any mismatch directly impacts accuracy.
+- **RTK alignment and timestamps**: A large constant time offset between images and RTK ground truth must be compensated (`t_offset = -28430400 s`); residual timing errors will influence evaluation.
 
 ---
 
 ## 🎯 Conclusions
 
-1. ✅ **ORB-SLAM3** was run successfully on **AMtown02** in monocular TUM mode, producing **CameraTrajectory.txt** and **KeyFrameTrajectory.txt**.
-2. ✅ **Evaluation** was performed with the project script and **evo**, reporting **ATE RMSE 1.33 m**, **RPE trans drift 1.58 m/m**, **RPE rot drift 12.20 deg/100m**, and **completeness 61.30%**.
-3. ✅ **Trajectory figures** and a **combined figure** were generated under `figures_AMtown02/`.
-4. ⚠️ **Completeness** can be improved by ensuring full-sequence tracking and using full-frame trajectory; parameter tuning (e.g. in `docs/AMtown_Mono.yaml`) may help.
+1. ✅ **ORB-SLAM3** was run successfully on **HKisland03** in monocular TUM mode, producing both **CameraTrajectory.txt** (full-frame) and **KeyFrameTrajectory.txt**.
+2. ✅ **Evaluation** was performed with the project scripts and **evo**, reporting **ATE RMSE 33.52 m**, **RPE trans drift 1.40 m/m**, **RPE rot drift 107.37 deg/100m**, and **completeness 94.27% (3687 / 3911)**.
+3. ✅ **Trajectory figures** and a **combined figure** were generated under `figures_HKisland03/`.
+4. ⚠️ **Long-term drift** remains significant due to the challenging monocular aerial setting and lack of loop closure/IMU, leaving room for future improvements.
 
 ### Recommendations
 
 | Priority | Action |
 |----------|--------|
-| High | Use `CameraTrajectory.txt` for evaluation (not only keyframes) |
-| High | Match camera resolution and intrinsics in the YAML to the actual images |
-| Medium | Tune ORB parameters (e.g. `nFeatures`, FAST thresholds) for your sequence |
-| Low | Consider VIO or loop closure if available for better scale and drift |
+| High | Use `CameraTrajectory.txt` (full-frame) for evaluation rather than keyframes only |
+| High | Ensure calibration (`HKisland_Mono_1224x1024.yaml`) matches the downsampled image resolution and lens characteristics |
+| Medium | Further tune ORB parameters (e.g. feature count, FAST thresholds) and consider robust outlier handling for HKisland03 |
+| Low | Explore adding IMU fusion or loop closure to reduce long-term drift on this sequence |
 
 ---
 
@@ -400,9 +451,7 @@ Figures are under `figures_AMtown02/`:
 
 3. Geiger, A., et al. (2012). **Are we ready for Autonomous Driving? The KITTI Dataset**. CVPR.
 
-4. MARS-LVIG Dataset: https://mars.hku.hk/dataset.html
-
-5. ORB-SLAM3 GitHub: https://github.com/UZ-SLAMLab/ORB_SLAM3
+4. ORB-SLAM3 GitHub: https://github.com/UZ-SLAMLab/ORB_SLAMLab/ORB_SLAM3
 
 ---
 
@@ -414,55 +463,44 @@ Figures are under `figures_AMtown02/`:
 .
 ├── README.md                           # This report
 ├── requirements.txt
-├── AMtown.yaml
 ├── data/
-│   ├── AMtown02/
+│   ├── HKisland03/
 │   │   ├── rgb.txt
 │   │   └── rgb/                        # (images; not in repo if too large)
-│   ├── CameraTrajectory.txt           # Full-frame trajectory
+│   ├── CameraTrajectory.txt           # Full-frame trajectory (HKisland03)
 │   └── KeyFrameTrajectory.txt
 ├── docs/
-│   ├── AMtown_Mono.yaml                # ORB-SLAM3 camera + ORB settings
-│   ├── ground_truth_AMtown02.txt
-│   ├── ground_truth_AMtown02_by_images.txt
-│   └── AMtown02_跑全图说明.md
-├── figures_AMtown02/
+│   ├── HKisland_Mono_1224x1024.yaml   # ORB-SLAM3 camera + ORB settings for HKisland03
+│   ├── ground_truth_HKisland03.txt    # RTK ground truth (TUM format)
+├── figures_HKisland03/
 │   ├── trajectory_evaluation.png
 │   ├── trajectory_3d_3d.png
 │   ├── trajectory_3d_2d.png
-│   └── AMtown02_trajectory_combined.png
-├── evaluation_results_AMtown02/
+│   └── HKisland03_trajectory_combined.png
+├── evaluation_results/
 │   └── metrics.json
-├── output/
-│   └── evaluation_report.json
 ├── scripts/
 │   ├── run_orb_slam3_mono.sh           # Run ORB-SLAM3 monocular TUM
-│   ├── evaluate_AMtown02_by_images.sh  # Evaluate + plot
+│   ├── run_evaluate_HKisland03.sh      # Evaluate + plot for HKisland03
 │   ├── evaluate_vo_accuracy.py
 │   ├── generate_report_figures.py
 │   ├── visualize_trajectory_3d.py
 │   └── merge_figures.py
 └── leaderboard/
     ├── README.md
-    ├── AMtown02_leaderboard.json
     └── submission_template.json
 ```
 
 ### B. Running commands (summary)
 
 ```bash
-# 1. Run ORB-SLAM3 on AMtown02
+# 1. Run ORB-SLAM3 on HKisland03
 export ORB_SLAM3_ROOT=/root/ORB_SLAM3
 export ORB_SLAM3_VOCAB=/root/ORB_SLAM3/Vocabulary/ORBvoc.txt
-export TRAJ_OUT_DIR=/home/workspace/data
-./scripts/run_orb_slam3_mono.sh data/AMtown02 docs/AMtown_Mono.yaml
+./scripts/run_orb_slam3_mono.sh data/HKisland03 docs/HKisland_Mono_1224x1024.yaml
 
-# 2. Evaluate and generate figures
-./scripts/evaluate_AMtown02_by_images.sh data/CameraTrajectory.txt
-
-# 3. (Optional) Merge figures
-python3 scripts/merge_figures.py --input-dir figures_AMtown02 \
-  --output figures_AMtown02/AMtown02_trajectory_combined.png --layout vertical
+# 2. Evaluate and generate figures for HKisland03
+./scripts/run_evaluate_HKisland03.sh
 ```
 
 ### C. Output trajectory format (TUM)
