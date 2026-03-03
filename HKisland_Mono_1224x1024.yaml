@@ -1,0 +1,46 @@
+%YAML:1.0
+
+# HKisland_GNSS03 单目 VO（图像已离线缩小 0.5 倍 → 1224×1024）
+# 原始 PNG 分辨率约为 2448×2048，本文件内参为原始标定按 0.5 等比例缩放后的结果。
+
+Camera.type: "PinHole"
+
+# 缩放后内参（用于 1224×1024 分辨率）
+Camera.fx: 726.86
+Camera.fy: 726.64
+Camera.cx: 586.09
+Camera.cy: 520.89
+
+# 假设图像已去畸变，如需畸变建模可根据实际标定填写
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+
+# 图像分辨率（与 downsample 后 PNG 一致）
+Camera.width: 1224
+Camera.height: 1024
+
+# 帧率与颜色顺序
+Camera.fps: 30.0
+Camera.RGB: 0
+
+# ORB 特征提取参数（已调优：更多特征、更低阈值以提升追踪稳定性）
+ORBextractor.nFeatures: 2000
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+# Viewer 可视化参数
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500.0
+Viewer: 1
