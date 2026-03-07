@@ -82,7 +82,6 @@ This assignment evaluates:
 - **Completeness**: Robustness / coverage (how much of the sequence is successfully tracked and evaluated)
 
 ---
-
 ## 🔬 Methodology
 
 ### ORB-SLAM3 Visual Odometry Overview
@@ -118,22 +117,34 @@ $$ATE_{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}\|\mathbf{p}_{est}^i - \mathbf{p}_
 
 #### 2. RPE (Relative Pose Error) – Drift Rates
 
-Measures local consistency by comparing relative transformations. We report drift as **rates**:
+Measures local consistency by comparing relative transformations:
+
+$$RPE_{trans} = \|\Delta\mathbf{p}_{est} - \Delta\mathbf{p}_{gt}\|$$
+
+where $\Delta\mathbf{p} = \mathbf{p}(t+\Delta) - \mathbf{p}(t)$
+
+**Reference**: Geiger et al., "Vision meets Robotics: The KITTI Dataset", IJRR 2013
+
+We report drift as **rates** that are easier to interpret and compare across methods:
 
 - **Translation drift rate** (m/m): \( \text{RPE}_{trans,mean} / \Delta d \)
 - **Rotation drift rate** (deg/100m): \( (\text{RPE}_{rot,mean} / \Delta d) \times 100 \)
 
-where \(\Delta d = 10\) m.
-
-**Reference**: Geiger et al., "Vision meets Robotics: The KITTI Dataset", IJRR 2013
+where \(\Delta d\) is a distance interval in meters (e.g., 10 m).
 
 #### 3. Completeness
 
+Completeness measures how many ground-truth poses can be associated and evaluated:
+
 $$Completeness = \frac{N_{matched}}{N_{gt}} \times 100\%$$
 
-#### Why Sim(3) alignment?
+#### Why these metrics (and why Sim(3) alignment)?
 
-Monocular VO has **scale ambiguity**. All metrics are computed after Sim(3) alignment (rotation + translation + scale) so that accuracy reflects **trajectory shape** and **drift**, not an arbitrary global scale.
+Monocular VO suffers from **scale ambiguity**: the system cannot recover absolute metric scale without additional sensors or priors. Therefore:
+
+- **All error metrics are computed after Sim(3) alignment** (rotation + translation + scale) so that accuracy reflects **trajectory shape** and **drift**, not an arbitrary global scale factor.
+- **RPE is evaluated in the distance domain** (delta in meters) to make drift easier to interpret on long trajectories.
+- **Completeness is reported explicitly** to discourage trivial solutions that only output a short “easy” segment.
 
 ### Evaluation Protocol
 
